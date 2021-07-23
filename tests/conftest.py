@@ -1,6 +1,6 @@
 import sys
 import os
-from subprocess import Popen, PIPE
+# from subprocess import Popen, PIPE
 
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,10 +29,10 @@ if FILENAME not in project_dir_content:
         f'Убедитесь, что у вас верная структура проекта.'
     )
 
-process = Popen(['python', 'yatube/manage.py', 'makemigrations', '--check', '--dry-run', '--no-input'], stdout=PIPE, stderr=PIPE)
-stdout, _ = process.communicate()
-assert process.returncode == 0, f'Вы забыли сделать миграции.\n\n{stdout.decode("UTF-8")}'
-
+#process = Popen(['python', 'yatube/manage.py', 'makemigrations', '--check', '--dry-run', '--no-input'], stdout=PIPE, stderr=PIPE)
+#tdout, _ = process.communicate()
+#assert process.returncode == 0, f'Вы забыли сделать миграции.\n\n{stdout.decode("UTF-8")}'
+#
 pytest_plugins = [
     'tests.fixtures.fixture_user',
     'tests.fixtures.fixture_data',
