@@ -9,7 +9,7 @@ from django import forms
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..models import Group, Post, User
+from ..models import Group, Post, User, Follow, Comment
 
 
 class PostViewsTests(TestCase):
@@ -208,18 +208,92 @@ class PostViewsTests(TestCase):
         self.assertEqual(len(response.context["page"]), 0)
 
     def test_cache_index_page(self):
+        """Проверяем кэширование главное страницы"""
         cache.clear()
-        post = Post.objects.create(text='Тест кэширования', author=self.user)
-        response = self.client.get(reverse('index'))
+        post = Post.objects.create(text="Тест кэширования", author=self.user)
+        response = self.client.get(reverse("index"))
         post_1 = response.context["page"][0].text
         self.assertEqual(post.text, post_1)
         post.delete()
         post_2 = response.context["page"][0].text
         self.assertEqual(post_2, post_1)
         cache.clear()
-        response = self.client.get(reverse('index'))
+        response = self.client.get(reverse("index"))
         post_3 = response.context["page"][0]
         self.assertNotEqual(post_3, post_1)
+
+    def test_user_subscribe(self):
+        """
+        Проверяем, что пользователь может
+        подписываться на другого пользователя
+        """
+        user2 = User.objects.create_user(username="TestUser2")
+        self.authorized_client.get(reverse(
+            "profile_follow", kwargs={"username": user2}))
+        followers_count = Follow.objects.filter(
+            user=self.user, author=user2).count()
+        self.assertEqual(followers_count, 1)
+
+    def test_user_unsubscribe(self):
+        """
+        Проверяем, что пользователь может
+        отписаться от другого пользователя
+        """
+        user2 = User.objects.create_user(username="TestUser2")
+        Follow.objects.create(user=self.user, author=user2)
+        followers_count = Follow.objects.filter(
+            user=self.user, author=user2).count()
+        self.assertEqual(followers_count, 1)
+        self.authorized_client.get(reverse(
+            "profile_unfollow", kwargs={"username": user2}))
+        followers_count = Follow.objects.filter(
+            user=self.user, author=user2).count()
+        self.assertEqual(followers_count, 0)
+
+    def test_follow_post_exists_in_follow_index(self):
+        """
+        Проверяем, что посты пользователя, на
+        которого подписан другой пользователь,
+        появляются на странице подписок
+        """
+        user2 = User.objects.create_user(username="TestUser2")
+        post = Post.objects.create(text="Проверка подписки", author=user2)
+        Follow.objects.create(user=self.user, author=user2)
+        response = self.authorized_client.get(reverse("follow_index"))
+        post_text1 = response.context["page"][0].text
+        self.assertEqual(post.text, post_text1)
+
+    def test_unfollow_post_does_dont_exists_in_follow_index(self):
+        """
+        Проверяем, что посты пользователя, на
+        которого не подписан другой пользователь,
+        не появляются на странице подписок
+        """
+        user2 = User.objects.create_user(username="TestUser2")
+        post = Post.objects.create(text="Проверка подписки", author=user2)
+        test_client = Client()
+        test_client.force_login(user2)
+        Follow.objects.create(user=user2, author=self.author)
+        response = test_client.get(reverse("follow_index"))
+        post_text1 = response.context["page"][0].text
+        self.assertNotEqual(post.text, post_text1)
+
+    def test_auth_user_can_comment(self):
+        """
+        Проверяем, что авторизированные пользователи
+        могут оставлять коментарий под другими постами
+        """
+        comments_count = Comment.objects.count()
+        form_data = {
+            "text": "Тестовое создание поста",
+        }
+        self.authorized_client.post(
+            reverse("add_comment", args=[self.author.username, self.post.id]),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertTrue(Comment.objects.filter(text=form_data["text"]).first())
 
 
 class PaginatorViewsTest(TestCase):
@@ -229,7 +303,7 @@ class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='TestUser')
+        cls.user = User.objects.create_user(username="TestUser")
         cls.group = Group.objects.create(
             title="Тестовое название",
             slug="test_slug",
@@ -261,9 +335,9 @@ class PaginatorViewsTest(TestCase):
     def test_second_page_contains_three_records(self):
         """Проверяет что на второй странице, отображаются 3 поста."""
         paginator_test = (
-            reverse("index") + '?page=2',
-            reverse("group_posts", args=[self.group.slug]) + '?page=2',
-            reverse("profile", args=[self.user]) + '?page=2',
+            reverse("index") + "?page=2",
+            reverse("group_posts", args=[self.group.slug]) + "?page=2",
+            reverse("profile", args=[self.user]) + "?page=2",
         )
         for page in paginator_test:
             with self.subTest(page):
