@@ -3,13 +3,14 @@
 {% block header %}Пост пользователя{% endblock %} 
 {% block content %}
 <main role="main" class="container">
-    <div class="row">
+  <div class="row">
       <div class="col-md-3 mb-3 mt-1">
-        {% include "author_card.html" %}
-      </div>
-      <div class="col-md-9">
-        {% include "post_item.html" with post=post %}
-      </div>
+        {% include "includes/author_card.html" %}
+        <div class="col-md-9">
+        {% include "includes/post_item.html" %}
+        {% include "includes/comments.html" %}
+        </div>
     </div>
+  </div>
   </main>
   {% endblock %}

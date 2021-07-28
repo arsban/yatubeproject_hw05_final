@@ -18,7 +18,7 @@ def new_post(request):
         return redirect('index')
     return render(
         request,
-        'posts/new_post.html',
+        'new_post.html',
         {
             'form': form,
             'mode': 'add'
@@ -67,14 +67,18 @@ def profile(request, username):
     page = paginator.get_page(page_number)
     following = user.is_authenticated and (
         Follow.objects.filter(user=user, author=author).exists())
+    is_user = True
+    if request.user == author:
+        is_user = False
     return render(
         request,
-        'posts/profile.html',
+        'profile.html',
         {
             "page": page,
             "author": author,
             "posts_count": author.posts.count(),
             "following": following,
+            "is_user": is_user
         }
     )
 
@@ -87,7 +91,7 @@ def post_view(request, username, post_id):
     form = CommentForm()
     return render(
         request,
-        'posts/post.html',
+        'post.html',
         {
             "post": post,
             "count": posts_count,
@@ -117,7 +121,7 @@ def post_edit(request, username, post_id):
         )
     return render(
         request,
-        'posts/new_post.html',
+        'new_post.html',
         {
             'form': form,
             'post': post,
@@ -137,7 +141,7 @@ def add_comment(request, username, post_id):
         comment.post = post
         comment.save()
         return redirect('post', username=username, post_id=post_id)
-    return render(request, 'comments.html', {'form': form})
+    return render(request, 'includes/comments.html', {'form': form})
 
 
 @login_required
@@ -163,9 +167,9 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     user = request.user
-    if author.following.filter(user=user).exists() and author != user:
+    if author != user:
         Follow.objects.filter(author=author, user=user).delete()
-    return redirect('profile', username=username)
+    return redirect("profile", username=username)
 
 
 def page_not_found(request, exception):

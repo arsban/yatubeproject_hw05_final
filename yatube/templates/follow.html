@@ -4,10 +4,10 @@
 {% block header %}Мои подписки{% endblock %}
 {% block content %}
     <div class="container">
-      {% include "menu.html" with follow=True %}
+      {% include "includes/menu.html" with follow=True %}
       {% for post in page %}
-      {% include "post_item.html" with post=post %}
+      {% include "includes/post_item.html" %}
       {% endfor %}
-      {% include "paginator.html" with items=page paginator=paginator%}
+      {% include "includes/paginator.html" with items=page paginator=paginator%}
     </div>
 {% endblock %}

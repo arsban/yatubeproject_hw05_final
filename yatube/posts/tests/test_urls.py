@@ -40,12 +40,12 @@ class PostsURLTests(TestCase):
         """URL-адрес использует соответствующий шаблон"""
         templates_url_names = {
             "/": "index.html",
-            "/new/": "posts/new_post.html",
+            "/new/": "new_post.html",
             "/group/test-slug/": "group.html",
-            f"/{self.author.username}/": "posts/profile.html",
-            f"/{self.author.username}/{self.post.id}/": "posts/post.html",
+            f"/{self.author.username}/": "profile.html",
+            f"/{self.author.username}/{self.post.id}/": "post.html",
             f"/{self.author.username}/{self.post.id}/edit/":
-            "posts/new_post.html",
+            "new_post.html",
         }
         for adress, template in templates_url_names.items():
             with self.subTest(adress=adress):

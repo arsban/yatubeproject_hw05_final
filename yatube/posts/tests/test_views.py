@@ -80,7 +80,7 @@ class PostViewsTests(TestCase):
         templates_pages_names = {
             reverse("index"): "index.html",
             reverse("group_posts", args=[self.group.slug]): "group.html",
-            reverse("new_post"): "posts/new_post.html",
+            reverse("new_post"): "new_post.html",
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -222,34 +222,6 @@ class PostViewsTests(TestCase):
         post_3 = response.context["page"][0]
         self.assertNotEqual(post_3, post_1)
 
-    def test_user_subscribe(self):
-        """
-        Проверяем, что пользователь может
-        подписываться на другого пользователя
-        """
-        user2 = User.objects.create_user(username="TestUser2")
-        self.authorized_client.get(reverse(
-            "profile_follow", kwargs={"username": user2}))
-        followers_count = Follow.objects.filter(
-            user=self.user, author=user2).count()
-        self.assertEqual(followers_count, 1)
-
-    def test_user_unsubscribe(self):
-        """
-        Проверяем, что пользователь может
-        отписаться от другого пользователя
-        """
-        user2 = User.objects.create_user(username="TestUser2")
-        Follow.objects.create(user=self.user, author=user2)
-        followers_count = Follow.objects.filter(
-            user=self.user, author=user2).count()
-        self.assertEqual(followers_count, 1)
-        self.authorized_client.get(reverse(
-            "profile_unfollow", kwargs={"username": user2}))
-        followers_count = Follow.objects.filter(
-            user=self.user, author=user2).count()
-        self.assertEqual(followers_count, 0)
-
     def test_follow_post_exists_in_follow_index(self):
         """
         Проверяем, что посты пользователя, на
@@ -294,6 +266,23 @@ class PostViewsTests(TestCase):
         )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
         self.assertTrue(Comment.objects.filter(text=form_data["text"]).first())
+
+    def test_guest_user_cant_comment(self):
+        self.guest_client = Client()
+        comments_count = Comment.objects.count()
+        form_data = {
+            "text": "Тестовое создание поста",
+        }
+        response = self.guest_client.post(
+            reverse("add_comment", args=[self.user, self.post.id]),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), comments_count)
+        self.assertRedirects(
+            response,
+            f"/auth/login/?next=/{self.user}/{self.post.id}/comment/"
+        )
 
 
 class PaginatorViewsTest(TestCase):
@@ -346,3 +335,43 @@ class PaginatorViewsTest(TestCase):
                     len(response.context.get("page").object_list),
                     self.POSTS_COUNT - self.POSTS_PER_PAGE
                 )
+
+
+class FollowViewsTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username="TestUser")
+        cls.user2 = User.objects.create_user(username="TestUser2")
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.authorized_client2 = Client()
+        self.authorized_client2.force_login(self.user2)
+
+    def test_user_subscribe(self):
+        """
+        Проверяем, что пользователь может
+        подписываться на другого пользователя
+        """
+        self.authorized_client.get(reverse(
+            "profile_follow", kwargs={"username": self.user2}))
+        followers_count = Follow.objects.filter(
+            user=self.user, author=self.user2).count()
+        self.assertEqual(followers_count, 1)
+
+    def test_user_unsubscribe(self):
+        """
+        Проверяем, что пользователь может
+        отписаться от другого пользователя
+        """
+        Follow.objects.create(user=self.user, author=self.user2)
+        followers_count = Follow.objects.filter(
+            user=self.user, author=self.user2).count()
+        self.assertEqual(followers_count, 1)
+        self.authorized_client.get(reverse(
+            "profile_unfollow", kwargs={"username": self.user2}))
+        followers_count = Follow.objects.filter(
+            user=self.user, author=self.user2).count()
+        self.assertEqual(followers_count, 0)
