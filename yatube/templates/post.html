@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Пост пользователя{{ post.author.username.get_full_name }} {% endblock %} 
-{% block header %}Пост пользователя{% endblock %} 
+{% block title %}Пост пользователя: {{ author.get_full_name }}{% endblock %} 
+{% block header %}Пост пользователя: {{ author.get_full_name }}{% endblock %} 
 {% block content %}
 <main role="main" class="container">
-  <div class="row">
+    <div class="row">
       <div class="col-md-3 mb-3 mt-1">
         {% include "includes/author_card.html" %}
         <div class="col-md-9">
         {% include "includes/post_item.html" %}
         {% include "includes/comments.html" %}
         </div>
+      </div>
     </div>
-  </div>
   </main>
   {% endblock %}
