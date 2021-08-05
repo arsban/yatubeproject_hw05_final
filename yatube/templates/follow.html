@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Мои подписки{% endblock %}
-{% block header %}Мои подписки{% endblock %}
+{% block header %}<a class="btn btn-lg btn-light">Мои подписки</a>{% endblock %}
 {% block content %}
     <div class="container">
       {% include "includes/menu.html" with follow=True %}

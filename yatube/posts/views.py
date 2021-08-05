@@ -129,7 +129,6 @@ def post_edit(request, username, post_id):
 
 @login_required
 def add_comment(request, username, post_id):
-
     post = get_object_or_404(Post, author__username=username, id=post_id)
     form = CommentForm(request.POST or None)
     if form.is_valid():
@@ -138,7 +137,14 @@ def add_comment(request, username, post_id):
         comment.post = post
         comment.save()
         return redirect('post', username=username, post_id=post_id)
-    return render(request, 'includes/comments.html', {'form': form})
+    return render(
+        request,
+        'includes/comments.html',
+        {
+            'form': form,
+            'post_id': post_id,
+        }
+    )
 
 
 @login_required
