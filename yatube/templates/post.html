@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Пост пользователя: {{ author.get_full_name }}{% endblock %} 
-{% block header %}Пост пользователя: {{ author.get_full_name }}{% endblock %} 
+{% block header %}<h1 class="btn btn-lg btn-light">Пост пользователя: {{ author.get_full_name }}</h1>{% endblock %} 
 {% block content %}
 <main role="main" class="container">
     <div class="row">
@@ -13,4 +13,4 @@
       </div>
     </div>
   </main>
-  {% endblock %}
+{% endblock %}
