@@ -10,7 +10,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-
+dist/
 downloads/
 eggs/
 .eggs/
@@ -146,3 +146,6 @@ dmypy.json
 .mypy_cache
 
 # папки со статикой и медиа
+static/
+yatube/posts/static/
+yatube/media/
