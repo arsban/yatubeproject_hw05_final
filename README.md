@@ -45,7 +45,7 @@ git clone https://github.com/arsban/yatubeproject_hw05_final.git
 cd yatubeproject_hw05_final
 ```
 
- - Установите зависимости
+ - Установите зависимости:
 ```
 pip install -r requirements.txt:
 ```
@@ -55,15 +55,12 @@ pip install -r requirements.txt:
 cd yatube
 ```
 
- - Выполните все необходимые миграции:
-```
-python manage.py makemigrations
-```
+ - Выполните необходимые миграции:
 ```
 python manage.py migrate
 ```
 
-## Для доступа к панели администратора создайте администратора:
+## Для доступа к панели администратора создайте аккаунт администратора:
 ```
 python manage.py createsuperuser
 ```
